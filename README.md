@@ -10,7 +10,7 @@ Plataforma de monitoramento climático e gestão de plantações para o Vale do 
 | `backend-java/` | Spring Boot 3.4 · JWT · RBAC · JPA/Hibernate · Flyway · MySQL | 8080 |
 | `backend-python/` | FastAPI · Pandas (análises e dashboards) | 8000 |
 
-Os ZIPs originais foram mantidos como referência; o código-fonte extraído é a versão ativa.
+Os ZIPs `AgroClima_*` e as pastas `frontend/`, `backend-java/`, `backend-python/` contêm **o mesmo código-fonte atualizado** (com RBAC, Design System e Modelos Preditivos). Pode rodar qualquer um dos dois — o código original foi substituído. Se extrair os ZIPs, rode de dentro da pasta `AgroClima_*-main/` gerada; se usar as pastas do repositório, rode `frontend/`, `backend-java/`, `backend-python/` diretamente.
 
 ## Execução local
 
