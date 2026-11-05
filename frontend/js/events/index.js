@@ -5,8 +5,8 @@ import { recordAuditEvent, getAuditEvents } from '../modules/audit.js';
 import { createPlantation as registerPlantation, getPlantations, recordHarvest } from '../modules/plantations.js';
 import { DEFAULT_DESIGN, applyDesignTokens, normalizeDesign } from '../modules/design-tokens.js';
 import { saveSettings } from '../modules/settings.js';
-import { apiPatch, apiPost } from '../services/api.js';
-import { loadWorkspaceData, normalizeUser, roleLabel } from '../services/workspace.js';
+import { apiDelete, apiPatch, apiPost } from '../services/api.js';
+import { loadPageData, loadWorkspaceData, normalizeUser, roleLabel } from '../services/workspace.js';
 import { maskBrPhone, validateBrPhone } from '../utils/phone.js';
 import { buildAnalystCsv } from '../views/pages/analyst.js';
 import { buildProducerCsv } from '../views/pages/plantations.js';
@@ -333,6 +333,55 @@ async function logUserAction(action, resource, details) {
   }
 }
 
+async function reloadModels() {
+  const state = getState();
+  const result = await loadPageData('Modelos Preditivos', state.roleKey, state.user?.permissionKeys || []);
+  if (!getState().authenticated || getState().page !== 'Modelos Preditivos') return;
+  const errors = result.pageErrors || [];
+  delete result.pageErrors;
+  setState({ ...result, pageError: errors.length ? errors.map((error) => error.message).join(' · ') : '' });
+}
+
+async function trainModel() {
+  if (!hasPermission('models.manage')) return;
+  const state = getState();
+  setState({ modelBusy: true, modelError: '', modelMessage: '' });
+  try {
+    const result = await apiPost('python', '/api/v1/models/train', {
+      algorithm: state.modelAlgorithm,
+      horizonDays: Number(state.modelHorizon) || 3,
+    });
+    setState({ modelMessage: result?.message || 'Modelo treinado e ativado.', modelBusy: false });
+    await reloadModels();
+    await refreshAudit();
+  } catch (error) {
+    setState({ modelBusy: false, modelError: describeApiError(error, 'Não foi possível treinar o modelo.') });
+  }
+}
+
+async function deleteModel() {
+  if (!hasPermission('models.manage')) return;
+  setState({ modelBusy: true, modelError: '', modelMessage: '' });
+  try {
+    await apiDelete('python', '/api/v1/models/active');
+    setState({ modelMessage: 'Modelo removido. A projeção voltou ao modelo estatístico.', modelBusy: false });
+    await reloadModels();
+    await refreshAudit();
+  } catch (error) {
+    setState({ modelBusy: false, modelError: describeApiError(error, 'Não foi possível remover o modelo.') });
+  }
+}
+
+async function refreshModels() {
+  setState({ modelBusy: true, modelError: '', modelMessage: '' });
+  try {
+    await reloadModels();
+    setState({ modelBusy: false });
+  } catch (error) {
+    setState({ modelBusy: false, modelError: describeApiError(error, 'Não foi possível atualizar os modelos.') });
+  }
+}
+
 async function logout() {
   try {
     await recordAuditEvent({ action: 'Encerrou sessão', resource: 'Sessão', details: 'Logout solicitado pelo usuário.' });
@@ -404,9 +453,9 @@ function handleClick(event) {
     if (downloaded) void logUserAction('Baixou relatório de plantações', 'Relatórios', 'Resumo dos registros de plantio do produtor.');
     return;
   }
-  if (action === 'run-demo-analysis' || action === 'save-demo-model') {
-    return setState({ modelMessage: 'Nenhum modelo preditivo está configurado. A API não executou uma análise fictícia.' });
-  }
+  if (action === 'train-model') return void trainModel();
+  if (action === 'delete-model') return void deleteModel();
+  if (action === 'refresh-models') return void refreshModels();
 }
 
 function handleChange({ target }) {
@@ -422,6 +471,8 @@ function handleChange({ target }) {
   if (target.matches('select[data-action="rbac-user-role"]')) return void assignRole(target);
   if (target.matches('select[data-action="user-status"]')) return void setUserStatus(target);
   if (target.matches('input[data-action="rbac-permission"]')) return void updateRolePermission(target);
+  if (target.matches('select[data-action="model-algorithm"]')) return setState({ modelAlgorithm: target.value });
+  if (target.matches('select[data-action="model-horizon"]')) return setState({ modelHorizon: Number(target.value) || 3 });
   if (target.matches('[data-design]')) return updateDesignDraft(target);
 }
 

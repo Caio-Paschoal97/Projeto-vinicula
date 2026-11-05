@@ -7,8 +7,8 @@ na resposta de perfil.
 
 ALL_PERMISSIONS = [
     "overview.view", "plantations.manage", "plantations.read.all", "monitoring.view",
-    "analytics.view", "reports.view", "users.manage", "rbac.manage", "security.manage",
-    "logs.read", "settings.manage", "design.manage", "integrations.manage",
+    "analytics.view", "models.manage", "reports.view", "users.manage", "rbac.manage",
+    "security.manage", "logs.read", "settings.manage", "design.manage", "integrations.manage",
 ]
 
 ROLE_PERMISSIONS = {
@@ -17,7 +17,7 @@ ROLE_PERMISSIONS = {
     ],
     "ANALYST": [
         "overview.view", "plantations.read.all", "monitoring.view", "analytics.view",
-        "reports.view", "integrations.manage",
+        "models.manage", "reports.view", "integrations.manage",
     ],
     "ADMIN": list(ALL_PERMISSIONS),
 }

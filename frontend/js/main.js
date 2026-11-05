@@ -119,7 +119,7 @@ async function refreshPageData(page = getState().page) {
   if (!state.authenticated || !page) return;
   setState({ pageLoading: true, pageError: '' });
   try {
-    const result = await loadPageData(page, state.roleKey);
+    const result = await loadPageData(page, state.roleKey, state.user?.permissionKeys || []);
     if (!getState().authenticated || getState().page !== page) return;
     const errors = result.pageErrors || [];
     const pageError = errors.length ? errors.map((error) => error.message).join(' · ') : '';
@@ -235,6 +235,7 @@ subscribe((state, changedKeys) => {
     'pageLoading', 'pageError', 'pageErrors', 'dashboard', 'analystDashboard', 'climate', 'market', 'forecast',
     'comparison', 'quality', 'integrationStatus', 'pythonHealth', 'plantations', 'plantationHistory', 'users', 'rbac', 'auditLogs',
     'settingsSection', 'settingsMessage', 'producerMessage', 'rbacMessage', 'modelMessage', 'designMessage', 'designError',
+    'modelStatus', 'agronomy', 'modelBusy', 'modelError', 'modelAlgorithm', 'modelHorizon',
     'logSearch', 'logStatus', 'logResource', 'logSort', 'expandedLogId', 'varieties', 'editingUserId', 'userFormError',
   ];
   if (refreshKeys.some(has)) renderPageContent();

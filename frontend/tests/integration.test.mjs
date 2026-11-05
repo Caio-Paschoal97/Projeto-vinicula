@@ -24,12 +24,12 @@ globalThis.sessionStorage = {
 };
 
 const ALL = ['overview.view', 'plantations.manage', 'plantations.read.all', 'monitoring.view', 'analytics.view',
-  'reports.view', 'users.manage', 'rbac.manage', 'security.manage', 'logs.read', 'settings.manage', 'design.manage', 'integrations.manage'];
+  'reports.view', 'users.manage', 'rbac.manage', 'security.manage', 'logs.read', 'settings.manage', 'design.manage', 'integrations.manage', 'models.manage'];
 
 const db = {
   roles: {
     PRODUCER: { key: 'PRODUCER', label: ROLES.PRODUCER, permissionKeys: ['overview.view', 'plantations.manage', 'monitoring.view', 'analytics.view', 'reports.view'] },
-    ANALYST: { key: 'ANALYST', label: ROLES.ANALYST, permissionKeys: ['overview.view', 'plantations.read.all', 'monitoring.view', 'analytics.view', 'reports.view', 'integrations.manage'] },
+    ANALYST: { key: 'ANALYST', label: ROLES.ANALYST, permissionKeys: ['overview.view', 'plantations.read.all', 'monitoring.view', 'analytics.view', 'reports.view', 'integrations.manage', 'models.manage'] },
     ADMIN: { key: 'ADMIN', label: ROLES.ADMIN, permissionKeys: [...ALL] },
   },
   users: {

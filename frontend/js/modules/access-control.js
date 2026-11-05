@@ -6,6 +6,7 @@ export const PERMISSIONS = Object.freeze([
   { key: 'plantations.read.all', label: 'Consultar plantações de todos os produtores', area: 'Plantações' },
   { key: 'monitoring.view', label: 'Consultar monitoramento climático', area: 'Monitoramento' },
   { key: 'analytics.view', label: 'Consultar análises e modelos', area: 'Análises' },
+  { key: 'models.manage', label: 'Treinar e remover modelos preditivos', area: 'Modelos Preditivos' },
   { key: 'reports.view', label: 'Consultar e gerar relatórios', area: 'Relatórios' },
   { key: 'users.manage', label: 'Consultar e gerenciar usuários', area: 'Usuários' },
   { key: 'rbac.manage', label: 'Gerenciar papéis e permissões', area: 'Permissões e RBAC' },

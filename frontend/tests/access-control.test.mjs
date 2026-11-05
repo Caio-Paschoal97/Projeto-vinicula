@@ -13,7 +13,7 @@ const PRODUCER_KEYS = ['overview.view', 'plantations.manage', 'monitoring.view',
 const ADMIN_KEYS = [
   'overview.view', 'plantations.manage', 'plantations.read.all', 'monitoring.view', 'analytics.view',
   'reports.view', 'users.manage', 'rbac.manage', 'security.manage', 'logs.read', 'settings.manage',
-  'design.manage', 'integrations.manage',
+  'design.manage', 'integrations.manage', 'models.manage',
 ];
 
 const producer = { id: 'u1', name: 'Mariana', email: 'm@a.test', roleKey: 'PRODUCER', role: ROLES.PRODUCER, permissionKeys: PRODUCER_KEYS };

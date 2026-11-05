@@ -59,8 +59,9 @@ export async function loadWorkspaceData(user) {
   return result;
 }
 
-export async function loadPageData(page, roleKey) {
+export async function loadPageData(page, roleKey, permissionKeys = []) {
   const key = String(roleKey || '').toUpperCase();
+  const permissions = new Set(Array.isArray(permissionKeys) ? permissionKeys : []);
   const requests = [];
   const add = (name, service, path) => requests.push([name, () => apiGet(service, path)]);
   if (page === 'Histórico' || page === 'Relatórios') add('plantationHistory', 'java', '/api/plantations/history');
@@ -70,7 +71,14 @@ export async function loadPageData(page, roleKey) {
     else add('dashboard', 'python', '/api/v1/dashboard/summary');
   }
   if (['Monitoramento', 'Dados Climáticos'].includes(page)) add('climate', 'python', '/api/v1/climate/current');
-  if (['Previsões', 'Modelos Preditivos'].includes(page)) add('forecast', 'python', '/api/v1/dashboard/forecast');
+  if (page === 'Previsões') add('forecast', 'python', '/api/v1/dashboard/forecast');
+  if (page === 'Modelos Preditivos') {
+    add('forecast', 'python', '/api/v1/models/forecast');
+    add('modelStatus', 'python', '/api/v1/models/status');
+    if (permissions.has('plantations.manage') || permissions.has('plantations.read.all')) {
+      add('agronomy', 'python', '/api/v1/agronomy/plantations');
+    }
+  }
   if (['Mercado e Exportação', 'Dados de Mercado'].includes(page)) add('market', 'python', '/api/v1/dashboard/market');
   if (['Comparação', 'Análise Comparativa'].includes(page)) add('comparison', 'python', '/api/v1/dashboard/comparison');
   if (page === 'Qualidade dos Dados') {

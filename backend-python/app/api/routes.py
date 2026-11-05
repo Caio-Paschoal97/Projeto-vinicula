@@ -11,6 +11,7 @@ from app.cache import TTLCache, token_key
 from app.clients.java_api import JavaApiClient
 from app.errors import ServiceError
 from app.models import (
+    AgronomySummary,
     AlertsSummary,
     AnalystDashboard,
     ClimateSummary,
@@ -20,12 +21,16 @@ from app.models import (
     ForecastSummary,
     IntegrationStatus,
     MarketSummary,
+    ModelStatus,
     QualitySummary,
     SyncSummary,
+    TrainRequest,
+    TrainResult,
     UserProfile,
 )
 from app.services.dashboard import DashboardService
 from app.services.indicators import DEFAULT_BASE_TEMP, DEFAULT_TARGET_GDD, DEFAULT_UPPER_TEMP
+from app.services.models import ModelService
 
 logger = logging.getLogger("agroclima.api")
 router = APIRouter(prefix="/api/v1", tags=["Análises e dashboards"])
@@ -43,6 +48,10 @@ def _service(request: Request) -> DashboardService:
 
 def _java(request: Request) -> JavaApiClient:
     return JavaApiClient(request.app.state.settings, request.app.state.http_client)
+
+
+def _models(request: Request) -> ModelService:
+    return ModelService(request.app.state.settings, request.app.state.http_client, request.app.state.model_registry)
 
 
 async def current_context(
@@ -87,6 +96,12 @@ def _require_permission(context: RequestContext, permission: str) -> None:
     aqui apenas consumimos esse resultado — não existe catálogo paralelo.
     """
     if permission not in context.user.permission_keys:
+        raise ServiceError(403, "Seu perfil não tem permissão para este recurso.")
+
+
+def _require_any_permission(context: RequestContext, permissions: set[str]) -> None:
+    """RBAC: exige ao menos uma das permissões do catálogo (ex.: ler plantações próprias ou de todos)."""
+    if not permissions.intersection(context.user.permission_keys):
         raise ServiceError(403, "Seu perfil não tem permissão para este recurso.")
 
 
@@ -176,10 +191,11 @@ async def market_dashboard(context: Annotated[RequestContext, Depends(current_co
 @router.get("/dashboard/forecast", response_model=ForecastSummary)
 async def forecast_dashboard(
     context: Annotated[RequestContext, Depends(current_context)], request: Request,
+    horizon_days: int = Query(default=3, ge=1, le=7, description="Dias à frente para projetar."),
 ) -> ForecastSummary:
-    """Projeção estatística simples de temperatura e umidade para os próximos 3 dias."""
+    """Projeção de temperatura e umidade: modelo ML ativo quando existe, senão o estatístico (Holt-Winters)."""
     _require_permission(context, "analytics.view")
-    return await _service(request).forecast()
+    return await _models(request).forecast(horizon_days)
 
 
 @router.get("/dashboard/alerts", response_model=AlertsSummary)
@@ -231,3 +247,56 @@ async def synchronize_thingspeak(
     """Dispara a sincronização no backend Java (ADMIN). O Python não acessa o ThingSpeak."""
     _require_role(context, {"ADMIN"})
     return await _service(request).sync_latest(context.authorization, start, end)
+
+
+@router.get("/models/status", response_model=ModelStatus)
+async def models_status(
+    context: Annotated[RequestContext, Depends(current_context)], request: Request,
+) -> ModelStatus:
+    """Estado dos modelos: disponibilidade estatística, histórico completo e modelo ML ativo."""
+    _require_permission(context, "analytics.view")
+    return await _models(request).status()
+
+
+@router.post("/models/train", response_model=TrainResult,
+              responses={409: {"description": "Histórico insuficiente para treinar."}})
+async def models_train(
+    context: Annotated[RequestContext, Depends(current_context)], request: Request,
+    body: TrainRequest | None = None,
+) -> TrainResult:
+    """Treina um modelo de machine learning no histórico real e o ativa. Exige models.manage."""
+    _require_permission(context, "models.manage")
+    return await _models(request).train(body or TrainRequest(), context.authorization)
+
+
+@router.get("/models/forecast", response_model=ForecastSummary)
+async def models_forecast(
+    context: Annotated[RequestContext, Depends(current_context)], request: Request,
+    horizon_days: int = Query(default=3, ge=1, le=7, description="Dias à frente para projetar."),
+) -> ForecastSummary:
+    """Projeção com o modelo ativo (ML treinado ou estatístico), com métricas de backtest."""
+    _require_permission(context, "analytics.view")
+    return await _models(request).forecast(horizon_days)
+
+
+@router.delete("/models/active", response_model=ModelStatus)
+async def models_delete_active(
+    context: Annotated[RequestContext, Depends(current_context)], request: Request,
+) -> ModelStatus:
+    """Remove o modelo ML ativo; a projeção volta ao modelo estatístico. Exige models.manage."""
+    _require_permission(context, "models.manage")
+    return await _models(request).delete_active(context.authorization)
+
+
+@router.get("/agronomy/plantations", response_model=AgronomySummary)
+async def agronomy_plantations(
+    context: Annotated[RequestContext, Depends(current_context)], request: Request,
+    base_temp: float = Query(default=DEFAULT_BASE_TEMP, ge=0, le=20, description="Temperatura-base, em °C."),
+    upper_temp: float = Query(default=DEFAULT_UPPER_TEMP, ge=20, le=50, description="Limite superior, em °C."),
+    target_gdd: float = Query(default=DEFAULT_TARGET_GDD, gt=0, le=5000, description="Alvo de graus-dia por ciclo."),
+) -> AgronomySummary:
+    """GDD/colheita, risco de doença e necessidade hídrica por plantação real (escopo definido pelo Java)."""
+    _require_any_permission(context, {"plantations.manage", "plantations.read.all"})
+    return await _models(request).agronomy(
+        context.authorization, base_temp=base_temp, upper_temp=upper_temp, target_gdd=target_gdd,
+    )

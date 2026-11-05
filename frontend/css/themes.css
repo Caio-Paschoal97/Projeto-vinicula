@@ -314,6 +314,10 @@
 .ds-grid .button-row { flex-wrap: wrap; }
 .field-hint { color: var(--muted); font-size: 0.5625rem; line-height: 1.5; }
 .form-feedback.error { color: var(--red); background: var(--danger-soft); }
+.form-feedback.success { color: var(--green); background: var(--mint); }
+.form-feedback.warning { color: var(--gold); background: var(--warning-soft); }
+.form-feedback { display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
+.form-feedback svg { flex: 0 0 auto; margin-top: 1px; }
 .edit-user-form { margin-top: 0; margin-bottom: 16px; padding-top: 0; border-top: 0; }
 .edit-user-form .section-head { margin-bottom: 14px; }
 .nav-empty { padding: 4px 11px; color: #88a298; font-size: 0.625rem; line-height: 1.55; }

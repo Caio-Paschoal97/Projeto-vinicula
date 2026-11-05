@@ -34,6 +34,27 @@ Os ZIPs originais foram mantidos como referência; o código-fonte extraído é 
 - **Telefone brasileiro validado** nas duas camadas: máscara `(81) 99999-9999` / `(81) 3333-4444`,
   DDD real, celular/fixo, sem sequências repetidas; armazenamento somente dígitos com DDI `55`.
 
+## Modelos preditivos (novidades)
+
+A página **Modelos Preditivos** (permissão `analytics.view`) reúne três camadas, todas calculadas a
+partir do histórico real da estação (ThingSpeak via API Java). Nenhuma delas é previsão meteorológica:
+são **projeções estatísticas do histórico da estação**, sem chuva, solo ou radiação medida.
+
+- **Estatística**: Holt-Winters (tendência + sazonalidade semanal, amortecida) com intervalo de
+  confiança de 95% e *backtesting* (MAE, RMSE, R²) por origem móvel. Substitui a regressão linear
+  simples quando há histórico suficiente; cai para a tendência linear com poucos dias.
+- **Machine learning**: `scikit-learn` (Random Forest / Gradient Boosting) com 20 features de lag e
+  calendário, treinado no histórico diário via API Java. O modelo ativo é persistido
+  (`joblib` + metadados JSON) e usado nas projeções. Treino real protegido por `models.manage`
+  (ADMIN/ANALYST), com mínimo de dias completos configurável (`MODEL_MIN_TRAIN_DAYS`, padrão 60).
+  A página mostra as métricas de validação e a comparação entre algoritmos candidatos.
+- **Agronômica**: por plantação real, acumulado de graus-dia (GDD) desde o plantio, janela de colheita
+  projetada, risco de míldio/oídio e necessidade de irrigação (ET0 de Hargreaves, ETc = ET0·Kc, DPV).
+  Exige `plantations.manage` ou `plantations.read.all`.
+
+O treino e a remoção do modelo geram **trilha de auditoria** (`POST /api/audit-events` no Java).
+A permissão `models.manage` é criada pela migração Flyway `V2__add_models_manage_permission.sql`.
+
 ## Testes
 
 ```bash

@@ -8,7 +8,7 @@ const PRODUCER_KEYS = ['overview.view', 'plantations.manage', 'monitoring.view',
 const ADMIN_KEYS = [
   'overview.view', 'plantations.manage', 'plantations.read.all', 'monitoring.view', 'analytics.view',
   'reports.view', 'users.manage', 'rbac.manage', 'security.manage', 'logs.read', 'settings.manage',
-  'design.manage', 'integrations.manage',
+  'design.manage', 'integrations.manage', 'models.manage',
 ];
 
 const producer = normalizeUser({ id: 'u1', name: 'Mariana', email: 'm@a.test', roleKey: 'PRODUCER', status: 'ACTIVE', permissionKeys: PRODUCER_KEYS });

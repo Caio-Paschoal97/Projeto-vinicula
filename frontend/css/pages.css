@@ -43,6 +43,24 @@
 .model-stats { display: flex; gap: 24px; margin-left: auto; }
 .model-stats div { display: flex; flex-direction: column; }.model-stats span { color: var(--muted); font-size: 0.5rem; }.model-stats strong { margin-top: 3px; font: 700 0.875rem var(--font-heading, "Manrope", sans-serif); }
 .button-row { display: flex; gap: 8px; }.button-row.end { justify-content: flex-end; }
+.model-training .section-head { margin-bottom: 14px; }
+.model-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-bottom: 14px; }
+.model-controls .field { min-width: 160px; }
+.model-controls .button-row { margin-left: auto; flex-wrap: wrap; }
+.model-meta { color: var(--muted); font-size: 0.625rem; line-height: 1.6; margin-top: 10px; }
+.model-meta strong { color: var(--ink); }
+.model-subhead { font-size: 0.8125rem; margin: 18px 0 10px; color: var(--forest-2); }
+.muted-cell { color: var(--muted); }
+.agronomy-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 16px; }
+.agronomy-card { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.agronomy-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.agronomy-head h3 { font-size: 1rem; margin-top: 3px; }
+.agronomy-progress { height: 8px; border-radius: 6px; background: var(--line); overflow: hidden; }
+.agronomy-bar { height: 100%; border-radius: 6px; background: var(--green); transition: width .3s ease; }
+.agronomy-list { list-style: none; padding: 0; margin: 4px 0 0; display: grid; gap: 9px; }
+.agronomy-list li { display: flex; align-items: center; gap: 8px; font-size: 0.625rem; color: var(--text-secondary, var(--muted)); }
+.agronomy-list li svg { color: var(--green); flex: 0 0 auto; }
+.agronomy-list .badge { font-size: 0.5rem; }
 .form-card { padding: 20px; }.form-card .section-head { margin-bottom: 15px; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }.form-grid .full { grid-column: 1/-1; }
 .checks { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
